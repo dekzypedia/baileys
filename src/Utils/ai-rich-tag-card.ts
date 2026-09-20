@@ -44,25 +44,15 @@ export function buildAIRichTagCard(options: AIRichTagCardOptions): proto.IMessag
 		messageType: proto.AIRichResponseMessageType.AI_RICH_RESPONSE_TYPE_STANDARD,
 		submessages,
 		contextInfo: {
-			forwardingScore,
 			isForwarded: true
 		}
 	}
 
 	const forwardedContext: proto.IMessageContextInfo = {
-		forwardingScore,
-		isForwarded: true,
-		forwardedAiBotMessageInfo: {
-			botName,
-			botJid: options.botJid,
-			creatorName: options.creatorName
-		},
-		botMessageSharingInfo: {
-			forwardScore: forwardingScore
-		}
-	}
+        botMetadata: undefined
+}
 
-	const botMetadata: proto.IBotMetadata = {
+        const botMetadata: proto.IBotMetadata = {
 		modelMetadata: {
 			modelNameOverride: options.modelName || 'Dekzypedia AI'
 		},
