@@ -1310,3 +1310,19 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 Thus, the maintainers of the project can't be held liable for any potential misuse of this project.
+
+
+## Dekzypedia AI Rich Tag Card
+
+This fork exposes `sendAIRichTagCard()` and `buildAIRichTagCard()` using the AI rich-response and bot-forwarded protobuf structures already present in WAProto. WhatsApp clients control the final visual rendering.
+
+```ts
+await sock.sendAIRichTagCard(jid, {
+  title: 'Shinobu AI',
+  text: 'Halo! Ini respons AI Rich.',
+  footer: 'Powered by Shinobu',
+  botName: 'Shinobu AI',
+  creatorName: 'Dekzypedia',
+  modelName: 'Dekzypedia AI'
+})
+```

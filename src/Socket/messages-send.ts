@@ -36,6 +36,7 @@ import {
 	unixTimestampSeconds
 } from '../Utils'
 import { getUrlInfo } from '../Utils/link-preview'
+import { buildAIRichTagCardMessage, type AIRichTagCardOptions } from '../Utils/ai-rich-tag-card.js'
 import { makeKeyedMutex, makeMutex } from '../Utils/make-mutex'
 import { getMessageReportingToken, shouldIncludeReportingToken } from '../Utils/reporting-utils'
 import {
@@ -1324,6 +1325,26 @@ export const makeMessagesSocket = (config: SocketConfig) => {
 			ev.emit('messages.update', [{ key: message.key, update: { message: message.message } }])
 
 			return message
+		},
+		sendAIRichTagCard: async (jid: string, card: AIRichTagCardOptions, options: MiscMessageGenerationOptions = {}) => {
+			const message = buildAIRichTagCardMessage(card)
+			const messageId = options.messageId || generateMessageIDV2(sock.user?.id)
+			const fullMsg = {
+				key: { remoteJid: jid, fromMe: true, id: messageId },
+				message,
+				messageTimestamp: Math.floor(Date.now() / 1000)
+			} as WAMessage
+			await relayMessage(jid, message, {
+				messageId,
+				useCachedGroupMetadata: options.useCachedGroupMetadata,
+				statusJidList: options.statusJidList
+			})
+			if (config.emitOwnEvents) {
+				process.nextTick(async () => {
+					await messageMutex.mutex(() => upsertMessage(fullMsg, 'append'))
+				})
+			}
+			return fullMsg
 		},
 		sendMessage: async (jid: string, content: AnyMessageContent, options: MiscMessageGenerationOptions = {}) => {
 			const userJid = authState.creds.me!.id

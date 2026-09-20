@@ -1,15 +1,16 @@
 {
-  "name": "baileys",
+  "name": "@dekzypedia/baileys",
   "type": "module",
-  "version": "7.0.0-rc14",
-  "description": "A WebSockets library for interacting with WhatsApp Web",
+  "version": "7.0.0-dekzy.2",
+  "description": "Baileys fork by Dekzypedia with Interactive and AI Rich support",
   "keywords": [
     "whatsapp",
     "automation"
   ],
-  "homepage": "https://github.com/WhiskeySockets/Baileys/",
+  "homepage": "https://github.com/dekzypedia/baileys",
   "repository": {
-    "url": "git@github.com:WhiskeySockets/Baileys.git"
+    "type": "git",
+    "url": "https://github.com/dekzypedia/baileys.git"
   },
   "license": "MIT",
   "author": "Rajeh Taher",
