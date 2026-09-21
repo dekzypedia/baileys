@@ -69,7 +69,19 @@ import { executeWMexQuery } from './mex.js'
  * - query phone connection
  */
 
-export const makeSocket = (config: SocketConfig) => {
+export const makeSocket = (config: SocketConfig) => { 
+		console.log(`
+██████╗ ███████╗██╗  ██╗███████╗██╗   ██╗██████╗ ██╗██████╗ ██╗   ██╗██████╗ ██╗ █████╗
+██╔══██╗██╔════╝██║ ██╔╝╚══███╔╝╚██╗ ██╔╝██╔══██╗██║██╔══██╗╚██╗ ██╔╝██╔══██╗██║██╔══██╗
+██║  ██║█████╗  █████╔╝   ███╔╝  ╚████╔╝ ██████╔╝██║██████╔╝ ╚████╔╝ ██████╔╝██║███████║
+██║  ██║██╔══╝  ██╔═██╗  ███╔╝    ╚██╔╝  ██╔═══╝ ██║██╔═══╝   ╚██╔╝  ██╔═══╝ ██║██╔══██║
+██████╔╝███████╗██║  ██╗███████╗   ██║   ██║     ██║██║        ██║   ██║     ██║██║  ██║
+╚═════╝ ╚══════╝╚═╝  ╚═╝╚══════╝   ╚═╝   ╚═╝     ╚═╝╚═╝        ╚═╝   ╚═╝     ╚═╝╚═╝  ╚═╝
+
+Baileys modifikasi by dekzypedia
+Tele: @dekzyy
+`)
+
 	const {
 		waWebSocketUrl,
 		connectTimeoutMs,
