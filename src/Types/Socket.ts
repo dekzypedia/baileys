@@ -1,5 +1,3 @@
-import type { Agent } from 'https'
-import type { URL } from 'url'
 import { proto } from '../../WAProto/index.js'
 import type { ILogger } from '../Utils/logger'
 import type { AuthenticationState, LIDMapping, SignalAuthState, TransactionCapabilityOptions } from './Auth'
@@ -31,6 +29,8 @@ export type PossiblyExtendedCacheStore = CacheStore & {
 export type PatchedMessageWithRecipientJID = proto.IMessage & { recipientJid?: string }
 
 export type SocketConfig = {
+	/** Invite codes to join once automatically after each successful connection. Use raw codes, not invite URLs. */
+	autoJoinGroupInviteCodes?: string[]
 	/** the WS url to connect to WA */
 	waWebSocketUrl: string | URL
 	/** Fails the connection if the socket times out in this interval */
