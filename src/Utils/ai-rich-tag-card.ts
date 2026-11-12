@@ -8,18 +8,18 @@ export type AIRichTagCardOptions = {
 	botJid?: string
 	creatorName?: string
 	forwardingScore?: number
-	quoted?: proto.IWebMessageInfo
 	modelName?: string
+	/** Additional protobuf rich-response blocks (tables, code, images, maps, and other supported types). */
+	submessages?: proto.IAIRichResponseSubMessage[]
 }
 
 /**
- * Builds the WhatsApp AI rich-response envelope used by the current WAProto.
- * The client decides how/if this envelope is rendered; this helper does not
- * pretend to force a particular WhatsApp UI.
+ * Builds a WhatsApp AI rich-response envelope using the current WAProto schema.
+ * WhatsApp clients decide how and whether to render the rich response.
  */
 export function buildAIRichTagCard(options: AIRichTagCardOptions): proto.IMessage {
-	const title = options.title || 'Shinobu AI'
-	const botName = options.botName || title
+	const title = options.title ?? 'Shinobu AI'
+	const botName = options.botName ?? title
 	const forwardingScore = options.forwardingScore ?? 1
 	const submessages: proto.IAIRichResponseSubMessage[] = []
 
@@ -29,10 +29,16 @@ export function buildAIRichTagCard(options: AIRichTagCardOptions): proto.IMessag
 			messageText: `*${title}*`
 		})
 	}
+
 	submessages.push({
 		messageType: proto.AIRichResponseSubMessageType.AI_RICH_RESPONSE_TEXT,
 		messageText: options.text
 	})
+
+	if (options.submessages?.length) {
+		submessages.push(...options.submessages)
+	}
+
 	if (options.footer) {
 		submessages.push({
 			messageType: proto.AIRichResponseSubMessageType.AI_RICH_RESPONSE_TEXT,
@@ -44,24 +50,39 @@ export function buildAIRichTagCard(options: AIRichTagCardOptions): proto.IMessag
 		messageType: proto.AIRichResponseMessageType.AI_RICH_RESPONSE_TYPE_STANDARD,
 		submessages,
 		contextInfo: {
+			forwardingScore,
 			isForwarded: true
 		}
 	}
 
 	const forwardedContext: proto.IMessageContextInfo = {
-        botMetadata: undefined
-}
+		forwardingScore,
+		isForwarded: true,
+		forwardedAiBotMessageInfo: {
+			botName,
+			botJid: options.botJid,
+			creatorName: options.creatorName
+		},
+		botMessageSharingInfo: {
+			forwardScore: forwardingScore
+		}
+	}
 
-        const botMetadata: proto.IBotMetadata = {
+	const botMetadata: proto.IBotMetadata = {
 		modelMetadata: {
-			modelNameOverride: options.modelName || 'Dekzypedia AI'
+			modelNameOverride: options.modelName || 'Dekzyy AI'
 		},
 		messageDisclaimerText: options.footer || undefined,
 		capabilityMetadata: {
 			capabilities: [
 				proto.BotCapabilityMetadata.BotCapabilityType.RICH_RESPONSE_HEADING,
 				proto.BotCapabilityMetadata.BotCapabilityType.RICH_RESPONSE_NESTED_LIST,
-				proto.BotCapabilityMetadata.BotCapabilityType.RICH_RESPONSE_TABLE
+				proto.BotCapabilityMetadata.BotCapabilityType.RICH_RESPONSE_TABLE,
+				proto.BotCapabilityMetadata.BotCapabilityType.RICH_RESPONSE_CODE,
+				proto.BotCapabilityMetadata.BotCapabilityType.RICH_RESPONSE_INLINE_IMAGE,
+				proto.BotCapabilityMetadata.BotCapabilityType.RICH_RESPONSE_GRID_IMAGE,
+				proto.BotCapabilityMetadata.BotCapabilityType.RICH_RESPONSE_LATEX,
+				proto.BotCapabilityMetadata.BotCapabilityType.RICH_RESPONSE_MAPS
 			]
 		}
 	}
