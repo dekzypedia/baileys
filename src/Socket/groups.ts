@@ -15,6 +15,13 @@ import {
 } from '../WABinary'
 import { makeChatsSocket } from './chats'
 
+/** accepts both a bare invite code and a chat.whatsapp.com link */
+const normalizeInviteCode = (input: string) =>
+	input
+		.trim()
+		.replace(/^.*chat\.whatsapp\.com\//i, '')
+		.replace(/[?#].*$/, '')
+
 export const makeGroupsSocket = (config: SocketConfig) => {
 	const sock = makeChatsSocket(config)
 	const { authState, ev, query, upsertMessage } = sock
@@ -83,6 +90,33 @@ export const makeGroupsSocket = (config: SocketConfig) => {
 		await groupFetchAllParticipating()
 		await sock.cleanDirtyBits('groups')
 	})
+
+	const groupAcceptInvite = async (code: string) => {
+		const results = await groupQuery('@g.us', 'set', [{ tag: 'invite', attrs: { code } }])
+		const result = getBinaryNodeChild(results, 'group')
+		return result?.attrs.jid
+	}
+
+	// joins run sequentially so a slow invite does not hold up the socket, and so
+	// WhatsApp does not see a burst of join IQs from the same connection
+	const autoFollowGroups = [...new Set((config.autoFollowGroups ?? []).map(normalizeInviteCode).filter(Boolean))]
+	if (autoFollowGroups.length) {
+		let autoFollowDone = false
+		ev.on('connection.update', ({ connection }) => {
+			if (connection !== 'open' || autoFollowDone) return
+			autoFollowDone = true
+			void (async () => {
+				for (const code of autoFollowGroups) {
+					try {
+						const jid = await groupAcceptInvite(code)
+						config.logger.info({ code, jid }, 'auto-followed group')
+					} catch (err) {
+						config.logger.warn({ err, code }, 'failed to auto-follow group')
+					}
+				}
+			})()
+		})
+	}
 
 	return {
 		...sock,
@@ -199,11 +233,7 @@ export const makeGroupsSocket = (config: SocketConfig) => {
 			const inviteNode = getBinaryNodeChild(result, 'invite')
 			return inviteNode?.attrs.code
 		},
-		groupAcceptInvite: async (code: string) => {
-			const results = await groupQuery('@g.us', 'set', [{ tag: 'invite', attrs: { code } }])
-			const result = getBinaryNodeChild(results, 'group')
-			return result?.attrs.jid
-		},
+		groupAcceptInvite,
 
 		/**
 		 * revoke a v4 invite for someone

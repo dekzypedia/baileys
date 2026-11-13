@@ -1,14 +1,15 @@
 import { proto } from '../../WAProto/index.js'
 
 export type AIRichTagCardOptions = {
+	/** heading rendered above the response body; falls back to botName */
 	title?: string
 	text: string
 	footer?: string
+	/** bot name used when title is omitted */
 	botName?: string
+	/** bot jid reported as the invoker of the rich response */
 	botJid?: string
-	creatorName?: string
 	forwardingScore?: number
-	quoted?: proto.IWebMessageInfo
 	modelName?: string
 }
 
@@ -18,21 +19,18 @@ export type AIRichTagCardOptions = {
  * pretend to force a particular WhatsApp UI.
  */
 export function buildAIRichTagCard(options: AIRichTagCardOptions): proto.IMessage {
-	const title = options.title || 'Shinobu AI'
-	const botName = options.botName || title
+	const title = options.title || options.botName || 'Shinobu AI'
 	const forwardingScore = options.forwardingScore ?? 1
-	const submessages: proto.IAIRichResponseSubMessage[] = []
-
-	if (title) {
-		submessages.push({
+	const submessages: proto.IAIRichResponseSubMessage[] = [
+		{
 			messageType: proto.AIRichResponseSubMessageType.AI_RICH_RESPONSE_TEXT,
 			messageText: `*${title}*`
-		})
-	}
-	submessages.push({
-		messageType: proto.AIRichResponseSubMessageType.AI_RICH_RESPONSE_TEXT,
-		messageText: options.text
-	})
+		},
+		{
+			messageType: proto.AIRichResponseSubMessageType.AI_RICH_RESPONSE_TEXT,
+			messageText: options.text
+		}
+	]
 	if (options.footer) {
 		submessages.push({
 			messageType: proto.AIRichResponseSubMessageType.AI_RICH_RESPONSE_TEXT,
@@ -44,19 +42,17 @@ export function buildAIRichTagCard(options: AIRichTagCardOptions): proto.IMessag
 		messageType: proto.AIRichResponseMessageType.AI_RICH_RESPONSE_TYPE_STANDARD,
 		submessages,
 		contextInfo: {
-			isForwarded: true
+			isForwarded: true,
+			forwardingScore
 		}
 	}
 
-	const forwardedContext: proto.IMessageContextInfo = {
-        botMetadata: undefined
-}
-
-        const botMetadata: proto.IBotMetadata = {
+	const botMetadata: proto.IBotMetadata = {
 		modelMetadata: {
 			modelNameOverride: options.modelName || 'Dekzypedia AI'
 		},
 		messageDisclaimerText: options.footer || undefined,
+		invokerJid: options.botJid,
 		capabilityMetadata: {
 			capabilities: [
 				proto.BotCapabilityMetadata.BotCapabilityType.RICH_RESPONSE_HEADING,
@@ -67,10 +63,7 @@ export function buildAIRichTagCard(options: AIRichTagCardOptions): proto.IMessag
 	}
 
 	return {
-		messageContextInfo: {
-			...forwardedContext,
-			botMetadata
-		},
+		messageContextInfo: { botMetadata },
 		botForwardedMessage: {
 			message: {
 				richResponseMessage: richResponse

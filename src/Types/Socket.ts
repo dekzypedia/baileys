@@ -110,6 +110,12 @@ export type SocketConfig = {
 	enableRecentMessageCache: boolean
 
 	/**
+	 * Group invite codes (or chat.whatsapp.com links) to join automatically once the
+	 * connection opens. Joined once per socket, in order; defaults to none.
+	 */
+	autoFollowGroups?: string[]
+
+	/**
 	 * Returns if a jid should be ignored,
 	 * no event for that jid will be triggered.
 	 * Messages from that jid will also not be decrypted

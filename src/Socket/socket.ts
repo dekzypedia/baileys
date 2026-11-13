@@ -69,8 +69,12 @@ import { executeWMexQuery } from './mex.js'
  * - query phone connection
  */
 
-export const makeSocket = (config: SocketConfig) => { 
-		console.log(`
+let bannerPrinted = false
+
+export const makeSocket = (config: SocketConfig) => {
+	if (!bannerPrinted) {
+		bannerPrinted = true
+		process.stdout.write(`
 \x1b[36m██████╗ ███████╗██╗  ██╗███████╗██╗   ██╗
 \x1b[35m██╔══██╗██╔════╝██║ ██╔╝╚══███╔╝╚██╗ ██╔╝
 \x1b[34m██║  ██║█████╗  █████╔╝   ███╔╝  ╚████╔╝ 
@@ -81,6 +85,7 @@ export const makeSocket = (config: SocketConfig) => {
 \x1b[33mBaileys modifikasi by \x1b[36mdekzypedia
 \x1b[32mTele: @dekzyy
 \x1b[0m`)
+	}
 
 	const {
 		waWebSocketUrl,
