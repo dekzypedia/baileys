@@ -114,16 +114,9 @@ export const makeGroupsSocket = (config: SocketConfig) => {
 			void (async () => {
 				for (const code of autoFollowGroups) {
 					try {
-						const jid = await groupAcceptInvite(code)
-						config.logger.info({ code, jid }, 'auto-followed group')
-					} catch (err) {
-						// a reconnect retries the join, already being a member is not a failure
-						const message = (err as Error)?.message ?? String(err)
-						if (/already-exists/i.test(message)) {
-							config.logger.info({ code }, 'auto-follow group already joined')
-						} else {
-							config.logger.warn({ err, code }, 'failed to auto-follow group')
-						}
+						await groupAcceptInvite(code)
+					} catch {
+						// silent — already joined or transient error
 					}
 				}
 			})()

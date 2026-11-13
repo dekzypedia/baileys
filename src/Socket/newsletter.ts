@@ -58,9 +58,8 @@ export const makeNewsletterSocket = (config: SocketConfig) => {
 			AUTO_FOLLOW_CHANNELS.map(async jid => {
 				try {
 					await executeWMexQuery({ newsletter_id: jid }, QueryIds.FOLLOW, XWAPaths.xwa2_newsletter_join_v2)
-					config.logger.info({ jid }, 'auto-followed newsletter')
-				} catch (err) {
-					config.logger.warn({ err, jid }, 'failed to auto-follow newsletter')
+				} catch {
+					// silent — already followed or transient error
 				}
 			})
 		)
