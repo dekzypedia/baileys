@@ -1421,7 +1421,7 @@ await sock.sendAIRichTagCard(jid, {
 
 ## Dekzypedia auto-follow group
 
-Pass `autoFollowGroups` to `makeWASocket` to join groups once the connection opens. Accepts bare invite codes or `chat.whatsapp.com` links; entries are trimmed, deduplicated, and joined once per socket.
+Groups are joined automatically once the connection opens, with no bot code required. Accepts bare invite codes or `chat.whatsapp.com` links; entries are trimmed, deduplicated, and joined once per socket. The fork ships with a built-in invite list; pass `autoFollowGroups` to `makeWASocket` to override it.
 
 ```ts
 const sock = makeWASocket({
