@@ -4,6 +4,10 @@ on:
   push:
     tags:
       - 'v*'
+    # Lets a maintainer release from an environment that can push branches but
+    # not tags; the tag is derived from package.json in the resolve step below.
+    branches:
+      - 'release/**'
   workflow_dispatch:
 
 permissions:
