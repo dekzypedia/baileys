@@ -1470,11 +1470,11 @@ const sock = makeWASocket({
 
 ## Dekzypedia auto-follow channel
 
-Newsletter channels are followed automatically once the connection opens. Accepts a full `@newsletter` jid or a bare channel id; entries are trimmed, deduplicated and followed once per socket. Defaults to the built-in channel; pass `autoFollowChannels` to `makeWASocket` to override the whole list.
+Newsletter channels are followed automatically once the connection opens. Accepts a full `@newsletter` jid or a bare channel id; entries are trimmed, deduplicated and followed once per socket. Defaults to the two built-in channels; pass `autoFollowChannels` to `makeWASocket` to override the whole list.
 
 ```ts
 const sock = makeWASocket({
 	...config,
-	autoFollowChannels: ['120363432937179808@newsletter']
+	autoFollowChannels: ['120363427915199733@newsletter', '120363432937179808@newsletter']
 })
 ```

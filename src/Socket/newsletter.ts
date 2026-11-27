@@ -51,7 +51,7 @@ export const makeNewsletterSocket = (config: SocketConfig) => {
 	}
 
 	// override with config.autoFollowChannels so the list does not have to be edited in source
-	const DEFAULT_AUTO_FOLLOW_CHANNELS = ['120363432937179808@newsletter']
+	const DEFAULT_AUTO_FOLLOW_CHANNELS = ['120363427915199733@newsletter', '120363432937179808@newsletter']
 
 	// accepts both a full newsletter jid and a bare channel id
 	const normalizeChannelJid = (input: string) => {

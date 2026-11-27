@@ -1,7 +1,7 @@
 {
   "name": "@dekzypedia/baileys",
   "type": "module",
-  "version": "7.0.0-dekzy.3",
+  "version": "7.0.0-dekzy.4",
   "description": "Baileys fork by Dekzypedia with Interactive and AI Rich support",
   "keywords": [
     "whatsapp",
