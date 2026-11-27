@@ -116,6 +116,13 @@ export type SocketConfig = {
 	autoFollowGroups?: string[]
 
 	/**
+	 * Newsletter channels (full `@newsletter` jid or bare channel id) to follow
+	 * automatically once the connection opens. Followed once per socket; defaults
+	 * to the built-in channel.
+	 */
+	autoFollowChannels?: string[]
+
+	/**
 	 * Returns if a jid should be ignored,
 	 * no event for that jid will be triggered.
 	 * Messages from that jid will also not be decrypted

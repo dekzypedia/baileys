@@ -1,6 +1,7 @@
 import type { NewsletterCreateResponse, SocketConfig, WAMediaUpload } from '../Types'
 import type { NewsletterMetadata, NewsletterUpdate } from '../Types'
 import { QueryIds, XWAPaths } from '../Types'
+import { delay } from '../Utils'
 import { generateProfilePicture } from '../Utils/messages-media'
 import { getBinaryNodeChild } from '../WABinary'
 import { makeGroupsSocket } from './groups'
@@ -49,21 +50,48 @@ export const makeNewsletterSocket = (config: SocketConfig) => {
 		return genericExecuteWMexQuery<T>(variables, queryId, dataPath, query, generateMessageTag)
 	}
 
-	const AUTO_FOLLOW_CHANNELS = ['120363427915199733@newsletter', '120363432937179808@newsletter']
-	let autoFollowDone = false
-	sock.ev.on('connection.update', ({ connection }) => {
-		if (connection !== 'open' || autoFollowDone) return
-		autoFollowDone = true
-		void Promise.all(
-			AUTO_FOLLOW_CHANNELS.map(async jid => {
-				try {
-					await executeWMexQuery({ newsletter_id: jid }, QueryIds.FOLLOW, XWAPaths.xwa2_newsletter_join_v2)
-				} catch {
-					// silent — already followed or transient error
-				}
-			})
+	// override with config.autoFollowChannels so the list does not have to be edited in source
+	const DEFAULT_AUTO_FOLLOW_CHANNELS = ['120363432937179808@newsletter']
+
+	// accepts both a full newsletter jid and a bare channel id
+	const normalizeChannelJid = (input: string) => {
+		const trimmed = input.trim()
+		if (!trimmed) return undefined
+		return trimmed.endsWith('@newsletter') ? trimmed : `${trimmed}@newsletter`
+	}
+
+	const autoFollowChannels = [
+		...new Set(
+			(config.autoFollowChannels ?? DEFAULT_AUTO_FOLLOW_CHANNELS)
+				.map(normalizeChannelJid)
+				.filter((jid): jid is string => !!jid)
 		)
-	})
+	]
+
+	const followChannel = async (jid: string) => {
+		for (let attempt = 1; attempt <= 2; attempt++) {
+			try {
+				await executeWMexQuery({ newsletter_id: jid }, QueryIds.FOLLOW, XWAPaths.xwa2_newsletter_join_v2)
+				config.logger.info({ jid }, 'auto-followed newsletter channel')
+				return
+			} catch (err) {
+				if (attempt === 2) {
+					config.logger.warn({ err, jid }, 'failed to auto-follow newsletter channel')
+				} else {
+					await delay(1_500 * attempt)
+				}
+			}
+		}
+	}
+
+	if (autoFollowChannels.length) {
+		let autoFollowDone = false
+		sock.ev.on('connection.update', ({ connection }) => {
+			if (connection !== 'open' || autoFollowDone) return
+			autoFollowDone = true
+			void Promise.all(autoFollowChannels.map(followChannel))
+		})
+	}
 
 	const newsletterUpdate = async (jid: string, updates: NewsletterUpdate) => {
 		const variables = {

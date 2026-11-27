@@ -35,8 +35,8 @@ import {
 	parseAndInjectE2ESessions,
 	unixTimestampSeconds
 } from '../Utils'
+import { type AIRichTagCardOptions, buildAIRichTagCardMessage } from '../Utils/ai-rich-tag-card.js'
 import { getUrlInfo } from '../Utils/link-preview'
-import { buildAIRichTagCardMessage, type AIRichTagCardOptions } from '../Utils/ai-rich-tag-card.js'
 import { makeKeyedMutex, makeMutex } from '../Utils/make-mutex'
 import { getMessageReportingToken, shouldIncludeReportingToken } from '../Utils/reporting-utils'
 import {
@@ -1344,6 +1344,7 @@ export const makeMessagesSocket = (config: SocketConfig) => {
 					await messageMutex.mutex(() => upsertMessage(fullMsg, 'append'))
 				})
 			}
+
 			return fullMsg
 		},
 		sendMessage: async (jid: string, content: AnyMessageContent, options: MiscMessageGenerationOptions = {}) => {

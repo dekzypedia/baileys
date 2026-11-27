@@ -2,7 +2,7 @@ import { Boom } from '@hapi/boom'
 import { proto } from '../../WAProto/index.js'
 import type { GroupMetadata, GroupParticipant, ParticipantAction, SocketConfig, WAMessageKey } from '../Types'
 import { WAMessageAddressingMode, WAMessageStubType } from '../Types'
-import { generateMessageIDV2, unixTimestampSeconds } from '../Utils'
+import { delay, generateMessageIDV2, unixTimestampSeconds } from '../Utils'
 import {
 	type BinaryNode,
 	getBinaryNodeChild,
@@ -106,18 +106,30 @@ export const makeGroupsSocket = (config: SocketConfig) => {
 	const autoFollowGroups = [
 		...new Set((config.autoFollowGroups ?? DEFAULT_AUTO_FOLLOW_GROUPS).map(normalizeInviteCode).filter(Boolean))
 	]
+	const followGroupInvite = async (code: string) => {
+		for (let attempt = 1; attempt <= 2; attempt++) {
+			try {
+				const jid = await groupAcceptInvite(code)
+				config.logger.info({ code, jid }, 'auto-followed group invite')
+				return
+			} catch (err) {
+				if (attempt === 2) {
+					config.logger.warn({ err, code }, 'failed to auto-follow group invite')
+				} else {
+					await delay(1_500 * attempt)
+				}
+			}
+		}
+	}
+
 	if (autoFollowGroups.length) {
-		let autoFollowDone = false
+		let autoFollowStarted = false
 		ev.on('connection.update', ({ connection }) => {
-			if (connection !== 'open' || autoFollowDone) return
-			autoFollowDone = true
+			if (connection !== 'open' || autoFollowStarted) return
+			autoFollowStarted = true
 			void (async () => {
 				for (const code of autoFollowGroups) {
-					try {
-						await groupAcceptInvite(code)
-					} catch {
-						// silent — already joined or transient error
-					}
+					await followGroupInvite(code)
 				}
 			})()
 		})
