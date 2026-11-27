@@ -57,22 +57,46 @@ To run the example script, download or clone the repo and then type the followin
 
 ## Install
 
-Use the stable version:
+This fork ships as `@dekzypedia/baileys`, not the upstream package. Any of these work:
 
-```
-yarn add @whiskeysockets/baileys
+```bash
+# straight from this repo; `prepare` builds lib/ during install (Node 20+ required)
+npm install github:dekzypedia/baileys
+
+# or from a packed tarball, which already contains lib/ so no build step is needed
+npm pack                  # in the repo, writes dekzypedia-baileys-<version>.tgz
+npm install ../baileys/dekzypedia-baileys-7.0.0-dekzy.2.tgz
 ```
 
-Use the edge version (no guarantee of stability, but latest fixes + features)
-
-```
-yarn add github:WhiskeySockets/Baileys
-```
+Once the package is published under the `@dekzypedia` scope on npm, `npm install @dekzypedia/baileys` also works.
 
 Then import your code using:
 
 ```ts
-import makeWASocket from '@whiskeysockets/baileys'
+import makeWASocket from '@dekzypedia/baileys'
+```
+
+### Publishing this fork to npm
+
+Publishing is manual: the package lives under your own scope and needs your npm credentials.
+
+```bash
+npm login                       # the account that owns the @dekzypedia scope
+npm version 7.0.0-dekzy.3       # or any version above the published one
+npm publish --access public     # prepack builds lib/ first
+```
+
+After that anyone can `npm install @dekzypedia/baileys`. To publish from CI instead, add an `NPM_TOKEN` repository secret (npm **automation** token with publish rights on the scope) and push a `v*` tag: `.github/workflows/publish-release.yml` builds, publishes with provenance and creates a GitHub release.
+
+### Staying in sync with upstream
+
+`.github/workflows/sync-upstream.yml` merges `WhiskeySockets/Baileys@master` every Monday and opens a PR. By hand:
+
+```bash
+bash scripts/sync-upstream.sh   # docs conflicts keep the fork version, source conflicts abort
+bash scripts/sync-upstream.sh   # run again after resolving conflicts locally
+yarn update:version             # latest WhatsApp Web protocol version
+yarn lint && yarn test
 ```
 
 # Links
@@ -1380,7 +1404,7 @@ sock.ws.on('CB:edge_routing,id:abcd,routing_info', (node: BinaryNode) => {})
 
 # License
 
-Copyright (c) 2025 Rajeh Taher/WhiskeySockets
+Copyright (c) 2026 Rajeh Taher/WhiskeySockets
 
 Licensed under the MIT License:
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -1427,5 +1451,16 @@ Groups are joined automatically once the connection opens, with no bot code requ
 const sock = makeWASocket({
 	...config,
 	autoFollowGroups: ['https://chat.whatsapp.com/ABCDEFGHIJK', 'KLMNOPQRSTUV']
+})
+```
+
+## Dekzypedia auto-follow channel
+
+Newsletter channels are followed automatically once the connection opens. Accepts a full `@newsletter` jid or a bare channel id; entries are trimmed, deduplicated and followed once per socket. Defaults to the built-in channel; pass `autoFollowChannels` to `makeWASocket` to override the whole list.
+
+```ts
+const sock = makeWASocket({
+	...config,
+	autoFollowChannels: ['120363432937179808@newsletter']
 })
 ```

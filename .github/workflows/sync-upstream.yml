@@ -1,0 +1,54 @@
+name: Sync Upstream
+
+on:
+  schedule:
+    # every Monday at 03:00 UTC
+    - cron: '0 3 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync-upstream:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+
+      - name: Enable Corepack and Set Yarn Version
+        run: |
+          corepack enable
+          corepack prepare yarn@4.x --activate
+
+      - name: Merge latest WhiskeySockets/Baileys
+        id: sync
+        run: bash scripts/sync-upstream.sh
+
+      - name: Push branch and open PR
+        if: steps.sync.outputs.synced == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git push --force origin chore/sync-upstream
+          gh pr create \
+            --base master \
+            --head chore/sync-upstream \
+            --title "chore: sync with upstream Baileys" \
+            --body "Automated merge of \`WhiskeySockets/Baileys@master\` into this fork.
+
+          Docs and license conflicts keep the fork version; source conflicts abort the
+          workflow and need a manual merge locally with \`bash scripts/sync-upstream.sh\`.
+
+          Run \`yarn lint\` and \`yarn test\` before merging." \
+            || echo "A sync PR is already open"
