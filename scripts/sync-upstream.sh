@@ -19,6 +19,9 @@ emit() {
 	fi
 }
 
+# merge commits need an author; CI runners have none configured
+git_identity=(-c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com")
+
 git fetch --no-tags "$UPSTREAM_URL" "$UPSTREAM_REF"
 UPSTREAM_SHA=$(git rev-parse FETCH_HEAD)
 
@@ -33,7 +36,7 @@ echo "Upstream $UPSTREAM_SHA is $(git rev-list --count "HEAD..$UPSTREAM_SHA") co
 git checkout -B "$SYNC_BRANCH"
 
 BLOCKING_CONFLICTS=()
-if ! git merge --no-ff --no-commit "$UPSTREAM_SHA"; then
+if ! git "${git_identity[@]}" merge --no-ff --no-commit "$UPSTREAM_SHA"; then
 	mapfile -t CONFLICTS < <(git diff --name-only --diff-filter=U)
 	for file in "${CONFLICTS[@]}"; do
 		case "$file" in
@@ -62,9 +65,7 @@ if git diff --cached --quiet; then
 	exit 0
 fi
 
-git -c user.name="github-actions[bot]" \
-	-c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
-	commit --no-edit
+git "${git_identity[@]}" commit --no-edit
 
 echo "Merged upstream into $SYNC_BRANCH"
 emit "synced=true"
