@@ -86,7 +86,21 @@ npm version 7.0.0-dekzy.3       # or any version above the published one
 npm publish --access public     # prepack builds lib/ first
 ```
 
-After that anyone can `npm install @dekzypedia/baileys`. To publish from CI instead, add an `NPM_TOKEN` repository secret (npm **automation** token with publish rights on the scope) and push a `v*` tag: `.github/workflows/publish-release.yml` builds, publishes with provenance and creates a GitHub release.
+After that anyone can `npm install @dekzypedia/baileys`. To publish from CI instead, bump the version, commit, and push a `release/v<version>` branch (or run `.github/workflows/publish-release.yml` manually): it builds, publishes with provenance and creates the GitHub release and tag. Publishing authenticates through [trusted publishing](https://docs.npmjs.com/trusted-publishers), so no `NPM_TOKEN` secret is involved — see below.
+
+#### Trusted publisher setup (one time)
+
+On npmjs.com open the package → **Settings** → **Trusted Publisher** → **GitHub Actions** and set:
+
+| Field | Value |
+|---|---|
+| Organization or user | `dekzypedia` |
+| Repository | `baileys` |
+| Workflow filename | `publish-release.yml` |
+| Environment | leave empty |
+| Allowed actions | allow `npm publish` (not stage-only) |
+
+Until that entry exists, the publish step fails with an OIDC/auth error; once it does, no npm token or 2FA approval is needed for CI releases.
 
 ### Staying in sync with upstream
 

@@ -24,11 +24,13 @@ jobs:
         with:
           fetch-depth: 0
 
+      # Node 24 ships npm 11, which is the floor for trusted publishing (OIDC).
+      # No registry-url here: it writes an .npmrc that needs NODE_AUTH_TOKEN,
+      # which this workflow no longer carries.
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20.x
-          registry-url: 'https://registry.npmjs.org'
+          node-version: 24.x
 
       - name: Enable Corepack and Set Yarn Version
         run: |
@@ -57,12 +59,15 @@ jobs:
           echo "tag=${tag}" >> "$GITHUB_OUTPUT"
 
       # prepack runs the build, so lib/ inside the tarball is always current.
-      # Requires the NPM_TOKEN repository secret: an npm automation token with
-      # publish rights on the @dekzypedia scope.
+      # Authenticates through trusted publishing: npm exchanges the workflow's
+      # OIDC token (needs id-token: write above) for a short-lived credential, so
+      # there is no NPM_TOKEN to rotate. Requires a trusted publisher on
+      # npmjs.com for this package pointing at dekzypedia/baileys and this
+      # workflow file, with direct publishing allowed.
       - name: Publish @dekzypedia/baileys to npm
-        run: npm publish --access public --provenance --tag latest
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          echo "npm $(npm --version)"
+          npm publish --access public --provenance --tag latest
 
       - name: Pack release asset
         run: |
