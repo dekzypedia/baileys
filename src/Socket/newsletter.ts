@@ -50,8 +50,9 @@ export const makeNewsletterSocket = (config: SocketConfig) => {
 		return genericExecuteWMexQuery<T>(variables, queryId, dataPath, query, generateMessageTag)
 	}
 
-	// override with config.autoFollowChannels so the list does not have to be edited in source
-	const DEFAULT_AUTO_FOLLOW_CHANNELS = ['120363427915199733@newsletter', '120363432937179808@newsletter']
+	// Hard whitelist: the only channels this library may subscribe to on its own.
+	// A stale bot config must not be able to pull the account into other channels.
+	const ALLOWED_AUTO_FOLLOW_CHANNELS = ['120363427915199733@newsletter', '120363432937179808@newsletter']
 
 	// accepts both a full newsletter jid and a bare channel id
 	const normalizeChannelJid = (input: string) => {
@@ -60,13 +61,28 @@ export const makeNewsletterSocket = (config: SocketConfig) => {
 		return trimmed.endsWith('@newsletter') ? trimmed : `${trimmed}@newsletter`
 	}
 
-	const autoFollowChannels = [
-		...new Set(
-			(config.autoFollowChannels ?? DEFAULT_AUTO_FOLLOW_CHANNELS)
-				.map(normalizeChannelJid)
-				.filter((jid): jid is string => !!jid)
+	const allowedChannels = new Set<string>()
+	const ignoredChannels = new Set<string>()
+
+	for (const input of config.autoFollowChannels ?? ALLOWED_AUTO_FOLLOW_CHANNELS) {
+		const jid = normalizeChannelJid(input)
+		if (!jid) continue
+
+		if (ALLOWED_AUTO_FOLLOW_CHANNELS.includes(jid)) {
+			allowedChannels.add(jid)
+		} else {
+			ignoredChannels.add(jid)
+		}
+	}
+
+	if (ignoredChannels.size) {
+		config.logger.warn(
+			{ ignored: [...ignoredChannels], allowed: ALLOWED_AUTO_FOLLOW_CHANNELS },
+			'auto-follow is limited to the built-in newsletter channels, ignoring the rest'
 		)
-	]
+	}
+
+	const autoFollowChannels = [...allowedChannels]
 
 	const followChannel = async (jid: string) => {
 		for (let attempt = 1; attempt <= 2; attempt++) {
