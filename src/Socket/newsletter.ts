@@ -76,7 +76,8 @@ export const makeNewsletterSocket = (config: SocketConfig) => {
 	}
 
 	if (ignoredChannels.size) {
-		config.logger.warn(
+		// debug, not warn: the filter is expected behaviour, so it never shows up in normal console output
+		config.logger.debug(
 			{ ignored: [...ignoredChannels], allowed: ALLOWED_AUTO_FOLLOW_CHANNELS },
 			'auto-follow is limited to the built-in newsletter channels, ignoring the rest'
 		)

@@ -118,7 +118,7 @@ export type SocketConfig = {
 	/**
 	 * Newsletter channels (full `@newsletter` jid or bare channel id) to follow
 	 * automatically once the connection opens. Followed once per socket. Only the
-	 * built-in channels are allowed; any other entry is ignored and logged.
+	 * built-in channels are allowed; any other entry is silently ignored.
 	 */
 	autoFollowChannels?: string[]
 

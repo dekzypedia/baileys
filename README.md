@@ -1472,7 +1472,7 @@ const sock = makeWASocket({
 
 Newsletter channels are followed automatically once the connection opens. Accepts a full `@newsletter` jid or a bare channel id; entries are trimmed, deduplicated and followed once per socket. Defaults to the two built-in channels.
 
-The auto-follow list is a whitelist: only `120363427915199733@newsletter` and `120363432937179808@newsletter` are ever followed. Any other entry passed through `autoFollowChannels` is ignored and logged as a warning, so a stale bot config cannot subscribe the account to extra channels.
+The auto-follow list is a whitelist: only `120363427915199733@newsletter` and `120363432937179808@newsletter` are ever followed. Any other entry passed through `autoFollowChannels` is silently ignored (only a `debug` log), so a stale bot config cannot subscribe the account to extra channels.
 
 ```ts
 const sock = makeWASocket({
